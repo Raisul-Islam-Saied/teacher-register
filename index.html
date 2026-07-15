@@ -538,7 +538,7 @@
     nameEn: v => /^[A-Za-z][A-Za-z\s.'-]{2,49}$/.test(v.trim()) || "Use English letters only (3–50 chars).",
     nameBn: v => /^[\u0980-\u09FF][\u0980-\u09FF\s.]{1,49}$/.test(v.trim()) || "Use Bengali letters only.",
     designation: v => DESIGNATIONS.includes(v) || "Select a valid designation.",
-    bloodGroup: v => ["A+","A-","B+","B-","AB+","AB-","O+","O-"].includes(v) || "Select a valid blood group.",
+    bloodGroup: v => ["A+","A-","B+","B-","AB+","AB-","O+","O-", "N/A"].includes(v) || "Select a valid blood group.",
     nid: v => {
       const t = v.trim();
       if(!/^\d{10}$|^\d{13}$|^\d{17}$/.test(t)) return "NID must be 10, 13 or 17 digits.";

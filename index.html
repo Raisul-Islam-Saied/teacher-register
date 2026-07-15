@@ -403,7 +403,7 @@
           </div>
 
           <div class="fixed-addr">
-            <div><b>Post Office</b>Rangunia</div>
+            <div><b>Post Office</b>Sarafbhata</div>
             <div><b>Post Code</b>4360</div>
             <div><b>Upazilla</b>Rangunia</div>
             <div><b>District</b>Chittagong</div>
@@ -411,20 +411,20 @@
         </form>
 
         <!-- STEP 3: Photo -->
-        <form class="fieldset" data-step="2" id="step2" novalidate>
-          <h2 class="fs-title">Photograph</h2>
-          <p class="fs-sub">Upload a clear, front-facing photo. It will be auto-cropped square and resized to 500×500.</p>
+       <form class="fieldset" data-step="2" id="step2" novalidate>
+          <h2 class="fs-title">Photograph</h2>
+          <p class="fs-sub">Upload a clear, front-facing photo with a <b>white background</b>. The image MUST be <b>perfectly square</b>.</p>
 
-          <div class="photo-zone">
-            <div class="photo-frame" id="photoFrame"><span class="ph-icon">📷</span></div>
-            <div class="photo-actions">
-              <label class="btn-upload" for="photoInput">Choose Photograph</label>
-              <input type="file" id="photoInput" accept="image/png, image/jpeg, image/webp">
-              <div class="photo-note">JPG, PNG or WEBP · max 10MB · will be center-cropped to a square and resized to 500×500 automatically before upload.</div>
-              <div class="field" data-field="photo" style="margin-top:10px;"><div class="err-msg"></div></div>
-            </div>
-          </div>
-        </form>
+          <div class="photo-zone">
+            <div class="photo-frame" id="photoFrame"><span class="ph-icon">📷</span></div>
+            <div class="photo-actions">
+              <label class="btn-upload" for="photoInput">Choose Photograph</label>
+              <input type="file" id="photoInput" accept="image/png, image/jpeg, image/webp">
+              <div class="photo-note">JPG, PNG or WEBP · max 10MB · Must be perfectly square (e.g. 600x600). It will be resized to 500×500 automatically.</div>
+              <div class="field" data-field="photo" style="margin-top:10px;"><div class="err-msg"></div></div>
+            </div>
+          </div>
+        </form>
 
         <!-- STEP 4: Review -->
         <form class="fieldset" data-step="3" id="step3" novalidate>
@@ -680,44 +680,47 @@
     return String(str).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   }
 
-  /* ================= Photo crop-to-square-500 ================= */
-  const photoInput = document.getElementById("photoInput");
-  const photoFrame = document.getElementById("photoFrame");
+ /* ================= Photo crop-to-square-500 ================= */
+  const photoInput = document.getElementById("photoInput");
+  const photoFrame = document.getElementById("photoFrame");
 
-  photoInput.addEventListener("change", (e)=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    if(!/^image\/(jpeg|png|webp)$/.test(file.type)){
-      showToast("Only JPG, PNG or WEBP images are allowed.", true);
-      return;
-    }
-    if(file.size > 10*1024*1024){
-      showToast("Image must be under 10MB.", true);
-      return;
-    }
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = ev=>{
-      img.onload = ()=>{
-        const size = Math.min(img.width, img.height);
-        const sx = (img.width - size)/2;
-        const sy = (img.height - size)/2;
-        const canvas = document.createElement("canvas");
-        canvas.width = 500; canvas.height = 500;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, sx, sy, size, size, 0, 0, 500, 500);
-        canvas.toBlob(blob=>{
-          state.photoBlob = blob;
-          state.photoDataUrl = canvas.toDataURL("image/jpeg", 0.92);
-          photoFrame.innerHTML = `<img src="${state.photoDataUrl}" alt="preview">`;
-          photoFrame.classList.add("has-img");
-          document.querySelector('.field[data-field="photo"]').classList.remove("invalid");
-        }, "image/jpeg", 0.92);
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
+  photoInput.addEventListener("change", (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    if(!/^image\/(jpeg|png|webp)$/.test(file.type)){
+      showToast("Only JPG, PNG or WEBP images are allowed.", true);
+      return;
+    }
+    if(file.size > 10*1024*1024){
+      showToast("Image must be under 10MB.", true);
+      return;
+    }
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      img.onload = ()=>{
+        if(img.width !== img.height) {
+          showToast("Image must be perfectly square (width and height must match).", true);
+          photoInput.value = ""; // clear input
+          return;
+        }
+        const size = img.width; // perfectly square
+        const canvas = document.createElement("canvas");
+        canvas.width = 500; canvas.height = 500;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, size, size, 0, 0, 500, 500);
+        canvas.toBlob(blob=>{
+          state.photoBlob = blob;
+          state.photoDataUrl = canvas.toDataURL("image/jpeg", 0.92);
+          photoFrame.innerHTML = `<img src="${state.photoDataUrl}" alt="preview">`;
+          photoFrame.classList.add("has-img");
+          document.querySelector('.field[data-field="photo"]').classList.remove("invalid");
+        }, "image/jpeg", 0.92);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 
   /* ================= Nav ================= */
   document.getElementById("btnNext").addEventListener("click", async ()=>{

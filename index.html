@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARDM · Teacher Registration Register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Noto+Serif+Bengali:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2420;
+    --ink-soft:#4A5750;
+    --paper:#FBF7EC;
+    --paper-deep:#F3ECD8;
+    --panel:#FFFDF6;
+    --emerald:#0E3B2E;
+    --emerald-deep:#082B21;
+    --emerald-glass:rgba(14,59,46,0.06);
+    --gold:#C69C3D;
+    --gold-soft:#E4C878;
+    --error:#A5291D;
+    --error-bg:#FBEAE7;
+    --success:#2F6B4F;
+    --rule:rgba(27,36,32,0.14);
+    --shadow:0 20px 50px -20px rgba(8,43,33,0.35);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(198,156,61,0.10), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, rgba(14,59,46,0.10), transparent 60%),
+      var(--paper);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    padding:32px 16px 64px;
+  }
+  ::selection{ background:var(--gold-soft); color:var(--emerald-deep); }
+
+  .wrap{ max-width:960px; margin:0 auto; }
+
+  /* ---------- Header / crest ---------- */
+  .crest-row{
+    display:flex; align-items:center; gap:16px; justify-content:center;
+    margin-bottom:6px; opacity:0; animation:fadeDown .7s ease forwards;
+  }
+  .crest{
+    width:52px; height:52px; border-radius:50%;
+    border:2px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Amiri',serif; font-weight:700; color:var(--emerald);
+    background:var(--panel); box-shadow:0 0 0 4px rgba(198,156,61,0.15);
+    font-size:20px;
+  }
+  h1.title{
+    font-family:'Amiri',serif; font-weight:700; font-size:clamp(24px,4vw,34px);
+    text-align:center; margin:8px 0 2px; color:var(--emerald-deep);
+    letter-spacing:.2px; opacity:0; animation:fadeDown .8s .05s ease forwards;
+  }
+  p.subtitle{
+    text-align:center; color:var(--ink-soft); margin:0 0 34px; font-size:14px;
+    letter-spacing:.4px; opacity:0; animation:fadeDown .8s .1s ease forwards;
+  }
+  p.subtitle .bn{ font-family:'Noto Serif Bengali',serif; }
+
+  @keyframes fadeDown{ from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes popIn{ from{opacity:0; transform:scale(.94);} to{opacity:1; transform:scale(1);} }
+  @keyframes shake{
+    10%,90%{ transform:translateX(-1px); }
+    20%,80%{ transform:translateX(2px); }
+    30%,50%,70%{ transform:translateX(-4px); }
+    40%,60%{ transform:translateX(4px); }
+  }
+  @keyframes sealIn{
+    0%{opacity:0; transform:scale(.4) rotate(-25deg);}
+    60%{opacity:1; transform:scale(1.08) rotate(4deg);}
+    100%{opacity:1; transform:scale(1) rotate(0deg);}
+  }
+  @keyframes shimmer{
+    0%{ background-position:-200% 0; }
+    100%{ background-position:200% 0; }
+  }
+
+  /* ---------- Card / ledger surface ---------- */
+  .ledger{
+    background:var(--panel);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    border:1px solid var(--rule);
+    overflow:hidden;
+    opacity:0; animation:fadeUp .6s .15s ease forwards;
+    position:relative;
+  }
+  .ledger::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:6px;
+    background:linear-gradient(90deg, var(--emerald) 0%, var(--gold) 50%, var(--emerald) 100%);
+  }
+  .ledger-body{ display:grid; grid-template-columns:220px 1fr; min-height:520px; }
+  @media (max-width:720px){ .ledger-body{ grid-template-columns:1fr; } }
+
+  /* ---------- Stepper ---------- */
+  .stepper{
+    background:linear-gradient(180deg, var(--emerald-deep), var(--emerald));
+    color:#EFE9D4; padding:32px 22px;
+    display:flex; flex-direction:column; gap:2px;
+  }
+  @media (max-width:720px){ .stepper{ flex-direction:row; overflow-x:auto; padding:18px 16px; gap:14px; } }
+  .step{
+    display:flex; align-items:flex-start; gap:12px; padding:14px 6px;
+    position:relative; opacity:.5; transition:opacity .35s ease;
+  }
+  .step.active, .step.done{ opacity:1; }
+  .step:not(:last-child)::after{
+    content:""; position:absolute; left:17px; top:44px; width:1px; height:calc(100% - 20px);
+    background:rgba(239,233,212,0.25);
+  }
+  @media (max-width:720px){ .step:not(:last-child)::after{ display:none; } }
+  .step-num{
+    width:34px; height:34px; border-radius:50%; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700;
+    border:1.5px solid rgba(239,233,212,0.4); transition:all .35s ease;
+  }
+  .step.active .step-num{ background:var(--gold); border-color:var(--gold); color:var(--emerald-deep); box-shadow:0 0 0 5px rgba(198,156,61,0.22); }
+  .step.done .step-num{ background:rgba(239,233,212,0.15); border-color:var(--gold-soft); color:var(--gold-soft); }
+  .step.done .step-num::before{ content:"✓"; }
+  .step-label{ padding-top:6px; }
+  .step-label .en{ font-size:13.5px; font-weight:600; letter-spacing:.3px; }
+  .step-label .bn{ font-family:'Noto Serif Bengali',serif; font-size:12px; opacity:.75; margin-top:2px; }
+
+  /* ---------- Form panel ---------- */
+  .panel{ padding:34px 36px 26px; display:flex; flex-direction:column; }
+  @media (max-width:720px){ .panel{ padding:26px 20px 20px; } }
+  .fieldset{ display:none; animation:fadeUp .45s ease; }
+  .fieldset.active{ display:block; }
+  .fs-title{ font-family:'Amiri',serif; font-size:21px; color:var(--emerald-deep); margin:0 0 4px; }
+  .fs-sub{ color:var(--ink-soft); font-size:13px; margin:0 0 24px; }
+
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:22px 24px; }
+  @media (max-width:560px){ .grid2{ grid-template-columns:1fr; } }
+
+  .field{ position:relative; margin-bottom:22px; }
+  .field label{
+    display:block; font-size:12.5px; font-weight:600; letter-spacing:.3px;
+    color:var(--ink-soft); margin-bottom:6px; text-transform:uppercase;
+  }
+  .field label .bn{ font-family:'Noto Serif Bengali',serif; text-transform:none; font-size:12.5px; }
+  .field .req{ color:var(--gold); }
+
+  .field input[type=text], .field input[type=tel], .field input[type=date], .field select{
+    width:100%; border:none; border-bottom:1.5px solid var(--rule);
+    background:transparent; padding:9px 2px 10px; font-family:'Inter',sans-serif;
+    font-size:15.5px; color:var(--ink); outline:none; transition:border-color .3s ease, box-shadow .3s ease;
+  }
+  .field select{ appearance:none; -webkit-appearance:none; cursor:pointer;
+    background-image:linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%), linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%);
+    background-position: calc(100% - 12px) 16px, calc(100% - 6px) 16px; background-size:6px 6px; background-repeat:no-repeat;
+  }
+  .field input:focus, .field select:focus{ border-color:var(--gold); box-shadow:0 1px 0 0 var(--gold); }
+  .field input.bn-input{ font-family:'Noto Serif Bengali',serif; font-size:16.5px; }
+  .field.invalid input, .field.invalid select{ border-color:var(--error); }
+  .field .err-msg{
+    display:none; font-size:12px; color:var(--error); margin-top:6px; font-weight:500;
+  }
+  .field.invalid .err-msg{ display:block; animation:shake .4s ease; }
+  .field .hint{ font-size:11.5px; color:var(--ink-soft); opacity:.75; margin-top:6px; }
+
+  .fixed-addr{
+    background:var(--emerald-glass); border:1px dashed rgba(14,59,46,0.25);
+    border-radius:10px; padding:14px 16px; margin-bottom:22px;
+    display:grid; grid-template-columns:repeat(4,1fr); gap:10px; font-size:13px;
+  }
+  @media (max-width:560px){ .fixed-addr{ grid-template-columns:1fr 1fr; } }
+  .fixed-addr div b{ display:block; font-size:10.5px; text-transform:uppercase; color:var(--ink-soft); letter-spacing:.4px; margin-bottom:2px; }
+
+  /* ---------- Photo step ---------- */
+  .photo-zone{ display:flex; gap:28px; align-items:center; flex-wrap:wrap; }
+  .photo-frame{
+    width:160px; height:160px; border-radius:14px; border:2px dashed var(--rule);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+    background:var(--paper-deep); flex:0 0 auto; position:relative; transition:border-color .3s ease;
+  }
+  .photo-frame.has-img{ border-style:solid; border-color:var(--gold); }
+  .photo-frame img{ width:100%; height:100%; object-fit:cover; }
+  .photo-frame .ph-icon{ font-size:34px; color:var(--ink-soft); opacity:.4; }
+  .photo-actions{ flex:1; min-width:220px; }
+  .btn-upload{
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    padding:11px 20px; border-radius:999px; background:var(--emerald); color:#fff;
+    font-size:13.5px; font-weight:600; transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .btn-upload:hover{ transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(14,59,46,0.5); }
+  input[type=file]{ display:none; }
+  .photo-note{ font-size:12px; color:var(--ink-soft); margin-top:10px; line-height:1.6; }
+
+  /* ---------- Review ---------- */
+  .review-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 28px; font-size:14px; }
+  @media (max-width:560px){ .review-grid{ grid-template-columns:1fr; } }
+  .review-row{ display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px dotted var(--rule); }
+  .review-row .k{ color:var(--ink-soft); font-size:12.5px; }
+  .review-row .v{ font-weight:600; text-align:right; }
+  .attest{
+    margin-top:22px; display:flex; gap:10px; align-items:flex-start;
+    background:var(--emerald-glass); border-radius:10px; padding:14px 16px; font-size:13px;
+  }
+  .attest input{ margin-top:2px; }
+
+  /* ---------- Nav buttons ---------- */
+  .nav-row{ display:flex; justify-content:space-between; align-items:center; margin-top:28px; padding-top:20px; border-top:1px solid var(--rule); }
+  .btn{
+    border:none; cursor:pointer; font-family:'Inter',sans-serif; font-weight:600; font-size:14px;
+    padding:12px 26px; border-radius:999px; transition:transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+  }
+  .btn-primary{ background:linear-gradient(120deg, var(--emerald), var(--emerald-deep)); color:#fff; }
+  .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 10px 24px -10px rgba(14,59,46,0.6); }
+  .btn-primary:disabled{ opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+  .btn-ghost{ background:transparent; color:var(--ink-soft); }
+  .btn-ghost:hover{ color:var(--ink); }
+  .btn-gold{ background:linear-gradient(120deg, var(--gold), #B7872C); color:#2A2005; }
+  .btn-gold:hover{ transform:translateY(-1px); box-shadow:0 10px 24px -10px rgba(198,156,61,0.6); }
+
+  /* ---------- Loading shimmer state ---------- */
+  .submitting-overlay{
+    position:fixed; inset:0; background:rgba(8,43,33,0.55); backdrop-filter:blur(3px);
+    display:none; align-items:center; justify-content:center; z-index:60;
+  }
+  .submitting-overlay.show{ display:flex; }
+  .submit-card{
+    background:var(--panel); border-radius:16px; padding:32px 40px; text-align:center;
+    box-shadow:var(--shadow); max-width:280px;
+  }
+  .spinner{
+    width:44px; height:44px; border-radius:50%; margin:0 auto 16px;
+    border:3px solid var(--rule); border-top-color:var(--gold); animation:spin 0.9s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .submit-status{ font-size:13.5px; color:var(--ink-soft); }
+
+  /* ---------- Success / ID card ---------- */
+  .id-wrap{ opacity:0; animation:fadeUp .6s ease forwards; }
+  .id-card{
+    background:linear-gradient(155deg, var(--panel) 60%, var(--paper-deep));
+    border-radius:20px; border:1px solid var(--rule); box-shadow:var(--shadow);
+    padding:36px 40px; position:relative; overflow:hidden;
+  }
+  .id-card::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:6px;
+    background:linear-gradient(90deg, var(--emerald), var(--gold), var(--emerald));
+  }
+  .id-top{ display:flex; gap:26px; align-items:center; flex-wrap:wrap; }
+  .id-photo{ width:120px; height:120px; border-radius:14px; overflow:hidden; border:3px solid var(--gold); flex:0 0 auto; }
+  .id-photo img{ width:100%; height:100%; object-fit:cover; }
+  .id-names .en{ font-family:'Amiri',serif; font-size:24px; color:var(--emerald-deep); margin:0; }
+  .id-names .bn{ font-family:'Noto Serif Bengali',serif; font-size:16px; color:var(--ink-soft); margin:2px 0 6px; }
+  .id-names .role{ display:inline-block; background:var(--emerald); color:#fff; font-size:12px; padding:4px 12px; border-radius:999px; letter-spacing:.3px; }
+
+  .seal{
+    margin-left:auto; width:88px; height:88px; border-radius:50%;
+    border:3px double var(--gold); display:flex; align-items:center; justify-content:center;
+    flex-direction:column; text-align:center; color:var(--emerald-deep);
+    background:radial-gradient(circle at 30% 30%, rgba(198,156,61,0.18), transparent 60%);
+    animation:sealIn .7s .2s cubic-bezier(.2,.9,.3,1.3) both;
+  }
+  .seal .s1{ font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px; opacity:.75; }
+  .seal .s2{ font-family:'Amiri',serif; font-weight:700; font-size:12px; }
+
+  .id-divider{ height:1px; background:var(--rule); margin:26px 0; }
+
+  .id-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px 30px; }
+  @media (max-width:560px){ .id-grid{ grid-template-columns:1fr; } }
+  .id-item .k{ font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-soft); margin-bottom:3px; }
+  .id-item .v{ font-size:14.5px; font-weight:600; }
+  .id-item .v.mono{ font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--emerald-deep); letter-spacing:.4px; }
+
+  .id-footer-note{
+    margin-top:26px; font-size:12px; color:var(--ink-soft); text-align:center; line-height:1.7;
+  }
+
+  .credit{
+    text-align:center; margin-top:26px; font-family:'Noto Serif Bengali',serif;
+    font-size:12.5px; color:var(--ink-soft); opacity:.75;
+  }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--emerald-deep); color:#fff; padding:13px 22px; border-radius:12px;
+    font-size:13.5px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:all .35s ease; z-index:70;
+    max-width:90vw;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast.error{ background:var(--error); }
+
+  .config-warning{
+    max-width:960px; margin:0 auto 16px; background:var(--error-bg); color:var(--error);
+    border:1px solid rgba(165,41,29,.25); border-radius:10px; padding:10px 16px; font-size:12.5px; display:none;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="crest-row"><div class="crest">আ</div></div>
+  <h1 class="title">Abdur Razzak Dakhil Madrasa</h1>
+  <p class="subtitle">Teacher Registration Register &nbsp;·&nbsp; <span class="bn">শিক্ষক তথ্য নিবন্ধন</span></p>
+
+  <div id="configWarning" class="config-warning">⚠ GAS_URL is not configured. Set CONFIG.GAS_URL in the script before going live.</div>
+
+  <!-- ===================== FORM VIEW ===================== -->
+  <div id="formView" class="ledger">
+    <div class="ledger-body">
+      <div class="stepper" id="stepper"></div>
+
+      <div class="panel">
+
+        <!-- STEP 1: Personal -->
+        <form class="fieldset active" data-step="0" id="step0" novalidate>
+          <h2 class="fs-title">Personal Information</h2>
+          <p class="fs-sub">Fill every field exactly as it appears on official documents.</p>
+
+          <div class="grid2">
+            <div class="field" data-field="nameEn">
+              <label>Full Name (English) <span class="req">*</span></label>
+              <input type="text" name="nameEn" autocomplete="off" placeholder="e.g. Md. Rayhan Uddin">
+              <div class="err-msg"></div>
+            </div>
+            <div class="field" data-field="nameBn">
+              <label><span class="bn">নাম (বাংলা)</span> <span class="req">*</span></label>
+              <input type="text" name="nameBn" class="bn-input" autocomplete="off" placeholder="যেমনঃ মোঃ রায়হান উদ্দিন">
+              <div class="err-msg"></div>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field" data-field="designation">
+              <label>Designation <span class="req">*</span></label>
+              <select name="designation">
+                <option value="">Select designation</option>
+              </select>
+              <div class="err-msg"></div>
+            </div>
+            <div class="field" data-field="bloodGroup">
+              <label>Blood Group <span class="req">*</span></label>
+              <select name="bloodGroup">
+                <option value="">Select blood group</option>
+                <option>A+</option><option>A-</option>
+                <option>B+</option><option>B-</option>
+                <option>AB+</option><option>AB-</option>
+                <option>O+</option><option>O-</option>
+              </select>
+              <div class="err-msg"></div>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field" data-field="nid">
+              <label>National ID (NID) <span class="req">*</span></label>
+              <input type="text" name="nid" inputmode="numeric" autocomplete="off" placeholder="10 / 13 / 17 digit number">
+              <div class="err-msg"></div>
+              <div class="hint">Enter the exact digit-count NID as printed on the card.</div>
+            </div>
+            <div class="field" data-field="dob">
+              <label>Date of Birth <span class="req">*</span></label>
+              <input type="date" name="dob">
+              <div class="err-msg"></div>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field" data-field="mobile">
+              <label>Mobile Number <span class="req">*</span></label>
+              <input type="tel" name="mobile" inputmode="numeric" autocomplete="off" placeholder="01XXXXXXXXX">
+              <div class="err-msg"></div>
+            </div>
+            <div class="field" data-field="emergencyContact">
+              <label>Emergency Contact <span class="req">*</span></label>
+              <input type="tel" name="emergencyContact" inputmode="numeric" autocomplete="off" placeholder="Different from mobile above">
+              <div class="err-msg"></div>
+            </div>
+          </div>
+        </form>
+
+        <!-- STEP 2: Address -->
+        <form class="fieldset" data-step="1" id="step1" novalidate>
+          <h2 class="fs-title">Address</h2>
+          <p class="fs-sub">Post office, post code, upazilla and district are fixed for this institution.</p>
+
+          <div class="grid2">
+            <div class="field" data-field="house">
+              <label>House / Address Line <span class="req">*</span></label>
+              <input type="text" name="house" autocomplete="off" placeholder="e.g. House 12, Road 3">
+              <div class="err-msg"></div>
+            </div>
+            <div class="field" data-field="village">
+              <label>Village <span class="req">*</span></label>
+              <input type="text" name="village" autocomplete="off" placeholder="e.g. Dakshin Rangunia">
+              <div class="err-msg"></div>
+            </div>
+          </div>
+
+          <div class="fixed-addr">
+            <div><b>Post Office</b>Rangunia</div>
+            <div><b>Post Code</b>4360</div>
+            <div><b>Upazilla</b>Rangunia</div>
+            <div><b>District</b>Chittagong</div>
+          </div>
+        </form>
+
+        <!-- STEP 3: Photo -->
+        <form class="fieldset" data-step="2" id="step2" novalidate>
+          <h2 class="fs-title">Photograph</h2>
+          <p class="fs-sub">Upload a clear, front-facing photo. It will be auto-cropped square and resized to 500×500.</p>
+
+          <div class="photo-zone">
+            <div class="photo-frame" id="photoFrame"><span class="ph-icon">📷</span></div>
+            <div class="photo-actions">
+              <label class="btn-upload" for="photoInput">Choose Photograph</label>
+              <input type="file" id="photoInput" accept="image/png, image/jpeg, image/webp">
+              <div class="photo-note">JPG, PNG or WEBP · max 10MB · will be center-cropped to a square and resized to 500×500 automatically before upload.</div>
+              <div class="field" data-field="photo" style="margin-top:10px;"><div class="err-msg"></div></div>
+            </div>
+          </div>
+        </form>
+
+        <!-- STEP 4: Review -->
+        <form class="fieldset" data-step="3" id="step3" novalidate>
+          <h2 class="fs-title">Review &amp; Confirm</h2>
+          <p class="fs-sub">Verify every detail. Once submitted, this record is locked to your device.</p>
+          <div class="review-grid" id="reviewGrid"></div>
+          <div class="attest">
+            <input type="checkbox" id="attestCheck">
+            <label for="attestCheck">I confirm the information above is true and accurate. Providing false information may lead to disciplinary action.</label>
+          </div>
+        </form>
+
+        <div class="nav-row">
+          <button type="button" class="btn btn-ghost" id="btnBack">← Back</button>
+          <button type="button" class="btn btn-primary" id="btnNext">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== ID CARD / SUCCESS VIEW ===================== -->
+  <div id="idView" class="id-wrap" style="display:none;">
+    <div class="id-card">
+      <div class="id-top">
+        <div class="id-photo"><img id="idPhoto" src="" alt=""></div>
+        <div class="id-names">
+          <p class="en" id="idNameEn"></p>
+          <p class="bn" id="idNameBn"></p>
+          <span class="role" id="idDesignation"></span>
+        </div>
+        <div class="seal">
+          <span class="s1">ARDM · REGISTRY</span>
+          <span class="s2" id="sealId"></span>
+        </div>
+      </div>
+      <div class="id-divider"></div>
+      <div class="id-grid">
+        <div class="id-item"><div class="k">Teacher ID</div><div class="v mono" id="idTeacherId"></div></div>
+        <div class="id-item"><div class="k">UID</div><div class="v mono" id="idUid"></div></div>
+        <div class="id-item"><div class="k">Mobile</div><div class="v" id="idMobile"></div></div>
+        <div class="id-item"><div class="k">Emergency Contact</div><div class="v" id="idEmergency"></div></div>
+        <div class="id-item"><div class="k">NID</div><div class="v" id="idNid"></div></div>
+        <div class="id-item"><div class="k">Date of Birth</div><div class="v" id="idDob"></div></div>
+        <div class="id-item"><div class="k">Blood Group</div><div class="v" id="idBlood"></div></div>
+        <div class="id-item"><div class="k">Address</div><div class="v" id="idAddress"></div></div>
+      </div>
+      <p class="id-footer-note">This record is permanently linked to this browser via your UID. Contact the madrasa office for any correction.</p>
+    </div>
+    <p class="credit">ডিজাইন ও ডেভেলপমেন্ট: রায়সুল ইসলাম সাঈদ</p>
+  </div>
+
+  <p class="credit" id="formCredit">ডিজাইন ও ডেভেলপমেন্ট: রায়সুল ইসলাম সাঈদ</p>
+</div>
+
+<div class="submitting-overlay" id="overlay">
+  <div class="submit-card">
+    <div class="spinner"></div>
+    <div class="submit-status" id="submitStatus">Saving your record…</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= CONFIG ================= */
+  const CONFIG = {
+    CLOUD_NAME: "djjnoclzp",
+    UPLOAD_PRESET: "student_db",
+    GAS_URL: "https://script.google.com/macros/s/AKfycbxO1addlBNx1Cv9MUMbYEP7UBIx4tDWPS7ABBdjcmAlQsJ0YxnEvKGnuzXAwSvtRPB7/exec",
+    STORAGE_KEY: "ardm_teacher_registration_v1"
+  };
+
+  const DESIGNATIONS = [
+    "Muhtamim (Principal)",
+    "Assistant Muhtamim",
+    "Nazeme Ta'limat (Academic Supervisor)",
+    "Muallim (Teacher)",
+    "Assistant Muallim",
+    "Hafez",
+    "Qari",
+    "Mufti",
+    "Muhaddith",
+    "Arabic Lecturer",
+    "Bangla Lecturer",
+    "English Lecturer",
+    "Mathematics Lecturer",
+    "Science Lecturer",
+    "Computer Instructor",
+    "Office Secretary",
+    "Accountant",
+    "Store Keeper",
+    "Boarding Superintendent",
+    "Guard",
+    "Cook",
+    "Cleaner",
+    "Other"
+  ];
+
+  if(!/^https:\/\/script\.google\.com\//.test(CONFIG.GAS_URL)){
+    document.getElementById("configWarning").style.display = "block";
+  }
+
+  /* ================= Validation rules ================= */
+  const RULES = {
+    nameEn: v => /^[A-Za-z][A-Za-z\s.'-]{2,49}$/.test(v.trim()) || "Use English letters only (3–50 chars).",
+    nameBn: v => /^[\u0980-\u09FF][\u0980-\u09FF\s.]{1,49}$/.test(v.trim()) || "Use Bengali letters only.",
+    designation: v => DESIGNATIONS.includes(v) || "Select a valid designation.",
+    bloodGroup: v => ["A+","A-","B+","B-","AB+","AB-","O+","O-"].includes(v) || "Select a valid blood group.",
+    nid: v => {
+      const t = v.trim();
+      if(!/^\d{10}$|^\d{13}$|^\d{17}$/.test(t)) return "NID must be 10, 13 or 17 digits.";
+      if(/^(\d)\1+$/.test(t)) return "NID number looks invalid.";
+      return true;
+    },
+    dob: v => {
+      if(!v) return "Date of birth is required.";
+      const d = new Date(v);
+      const today = new Date();
+      if(isNaN(d.getTime()) || d > today) return "Enter a valid past date.";
+      const age = (today - d) / (365.25*24*3600*1000);
+      if(age < 18) return "Must be at least 18 years old.";
+      if(age > 70) return "Please verify — age exceeds 70.";
+      return true;
+    },
+    mobile: v => /^01[3-9]\d{8}$/.test(v.trim()) || "Enter a valid 11-digit BD mobile number.",
+    emergencyContact: (v, form) => {
+      if(!/^01[3-9]\d{8}$/.test(v.trim())) return "Enter a valid 11-digit BD mobile number.";
+      if(form && v.trim() === (form.mobile||"").trim()) return "Must differ from the mobile number above.";
+      return true;
+    },
+    house: v => /^[A-Za-z0-9\s,.\-\/]{2,60}$/.test(v.trim()) || "2–60 chars, letters/numbers only.",
+    village: v => /^[A-Za-z0-9\s,.\-\/]{2,60}$/.test(v.trim()) || "2–60 chars, letters/numbers only."
+  };
+
+  /* ================= State ================= */
+  const state = {
+    step: 0,
+    data: { nameEn:"", nameBn:"", designation:"", bloodGroup:"", nid:"", dob:"",
+             mobile:"", emergencyContact:"", house:"", village:"" },
+    photoBlob: null,
+    photoDataUrl: null
+  };
+
+  const steps = [
+    { id:"step0", en:"Personal", bn:"ব্যক্তিগত তথ্য" },
+    { id:"step1", en:"Address", bn:"ঠিকানা" },
+    { id:"step2", en:"Photograph", bn:"ছবি" },
+    { id:"step3", en:"Review", bn:"পর্যালোচনা" }
+  ];
+
+  const stepperEl = document.getElementById("stepper");
+  steps.forEach((s,i)=>{
+    const div = document.createElement("div");
+    div.className = "step" + (i===0 ? " active":"");
+    div.innerHTML = `<div class="step-num">${i+1}</div><div class="step-label"><div class="en">${s.en}</div><div class="bn">${s.bn}</div></div>`;
+    stepperEl.appendChild(div);
+  });
+
+  // populate designation select
+  const desigSelect = document.querySelector('select[name="designation"]');
+  DESIGNATIONS.forEach(d=>{
+    const opt = document.createElement("option");
+    opt.value = d; opt.textContent = d;
+    desigSelect.appendChild(opt);
+  });
+
+  function renderStepper(){
+    document.querySelectorAll(".step").forEach((el,i)=>{
+      el.classList.toggle("active", i===state.step);
+      el.classList.toggle("done", i<state.step);
+    });
+  }
+
+  function showStep(i){
+    document.querySelectorAll(".fieldset").forEach(f=>f.classList.remove("active"));
+    document.getElementById(steps[i].id).classList.add("active");
+    state.step = i;
+    renderStepper();
+    document.getElementById("btnBack").style.visibility = i===0 ? "hidden":"visible";
+    document.getElementById("btnNext").textContent = i===steps.length-1 ? "Submit Registration" : "Next →";
+    if(i===3) buildReview();
+    window.scrollTo({top: document.getElementById("formView").offsetTop - 20, behavior:"smooth"});
+  }
+
+  /* ================= Field validation UI ================= */
+  function validateField(name, value){
+    const rule = RULES[name];
+    if(!rule) return true;
+    const result = rule(value, state.data);
+    const fieldEl = document.querySelector(`.field[data-field="${name}"]`);
+    if(result === true){
+      fieldEl.classList.remove("invalid");
+      fieldEl.querySelector(".err-msg").textContent = "";
+      return true;
+    } else {
+      fieldEl.classList.add("invalid");
+      fieldEl.querySelector(".err-msg").textContent = result;
+      return false;
+    }
+  }
+
+  function bindInputs(){
+    document.querySelectorAll("#step0 input, #step0 select, #step1 input").forEach(input=>{
+      input.addEventListener("input", ()=>{
+        state.data[input.name] = input.value;
+        validateField(input.name, input.value);
+      });
+      input.addEventListener("blur", ()=> validateField(input.name, input.value));
+    });
+  }
+  bindInputs();
+
+  function validateStep(i){
+    let valid = true;
+    if(i===0){
+      ["nameEn","nameBn","designation","bloodGroup","nid","dob","mobile","emergencyContact"].forEach(n=>{
+        const el = document.querySelector(`#step0 [name="${n}"]`);
+        if(!validateField(n, el.value)) valid = false;
+      });
+    } else if(i===1){
+      ["house","village"].forEach(n=>{
+        const el = document.querySelector(`#step1 [name="${n}"]`);
+        if(!validateField(n, el.value)) valid = false;
+      });
+    } else if(i===2){
+      const fieldEl = document.querySelector('.field[data-field="photo"]');
+      if(!state.photoBlob){
+        fieldEl.classList.add("invalid");
+        fieldEl.querySelector(".err-msg").textContent = "Please upload a photograph.";
+        valid = false;
+      } else {
+        fieldEl.classList.remove("invalid");
+      }
+    } else if(i===3){
+      if(!document.getElementById("attestCheck").checked){
+        showToast("Please confirm the attestation checkbox.", true);
+        valid = false;
+      }
+    }
+    return valid;
+  }
+
+  function buildReview(){
+    const d = state.data;
+    const rows = [
+      ["Name (En)", d.nameEn], ["নাম", d.nameBn], ["Designation", d.designation],
+      ["Blood Group", d.bloodGroup], ["NID", d.nid], ["Date of Birth", d.dob],
+      ["Mobile", d.mobile], ["Emergency", d.emergencyContact],
+      ["House", d.house], ["Village", d.village],
+      ["Post Office", "Rangunia"], ["Post Code", "4360"],
+      ["Upazilla", "Rangunia"], ["District", "Chittagong"]
+    ];
+    document.getElementById("reviewGrid").innerHTML = rows.map(r=>
+      `<div class="review-row"><span class="k">${r[0]}</span><span class="v">${escapeHtml(r[1]||"—")}</span></div>`
+    ).join("");
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  /* ================= Photo crop-to-square-500 ================= */
+  const photoInput = document.getElementById("photoInput");
+  const photoFrame = document.getElementById("photoFrame");
+
+  photoInput.addEventListener("change", (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    if(!/^image\/(jpeg|png|webp)$/.test(file.type)){
+      showToast("Only JPG, PNG or WEBP images are allowed.", true);
+      return;
+    }
+    if(file.size > 10*1024*1024){
+      showToast("Image must be under 10MB.", true);
+      return;
+    }
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      img.onload = ()=>{
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size)/2;
+        const sy = (img.height - size)/2;
+        const canvas = document.createElement("canvas");
+        canvas.width = 500; canvas.height = 500;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, 500, 500);
+        canvas.toBlob(blob=>{
+          state.photoBlob = blob;
+          state.photoDataUrl = canvas.toDataURL("image/jpeg", 0.92);
+          photoFrame.innerHTML = `<img src="${state.photoDataUrl}" alt="preview">`;
+          photoFrame.classList.add("has-img");
+          document.querySelector('.field[data-field="photo"]').classList.remove("invalid");
+        }, "image/jpeg", 0.92);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  /* ================= Nav ================= */
+  document.getElementById("btnNext").addEventListener("click", async ()=>{
+    if(!validateStep(state.step)) { showToast("Please fix the highlighted fields.", true); return; }
+    if(state.step < steps.length-1){
+      showStep(state.step+1);
+    } else {
+      await submitRegistration();
+    }
+  });
+  document.getElementById("btnBack").addEventListener("click", ()=>{
+    if(state.step>0) showStep(state.step-1);
+  });
+
+  /* ================= Toast ================= */
+  let toastTimer;
+  function showToast(msg, isError){
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "toast show" + (isError ? " error":"");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> t.classList.remove("show"), 3200);
+  }
+
+  /* ================= Submit flow ================= */
+  const overlay = document.getElementById("overlay");
+  const submitStatus = document.getElementById("submitStatus");
+
+  function setOverlay(show, msg){
+    overlay.classList.toggle("show", show);
+    if(msg) submitStatus.textContent = msg;
+  }
+
+  async function callGAS(payload){
+    const res = await fetch(CONFIG.GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids CORS preflight on Apps Script
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error("Network error contacting server.");
+    const json = await res.json();
+    return json;
+  }
+
+  async function uploadToCloudinary(blob, publicId){
+    const fd = new FormData();
+    fd.append("file", blob, publicId + ".jpg");
+    fd.append("upload_preset", CONFIG.UPLOAD_PRESET);
+    fd.append("public_id", publicId);
+    fd.append("folder", "ardm/teachers");
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CONFIG.CLOUD_NAME}/image/upload`, {
+      method:"POST", body: fd
+    });
+    if(!res.ok) throw new Error("Photo upload failed.");
+    const json = await res.json();
+    return json.secure_url;
+  }
+
+  async function submitRegistration(){
+    setOverlay(true, "Creating registration record…");
+    document.getElementById("btnNext").disabled = true;
+    try {
+      const createRes = await callGAS(Object.assign({ action:"create" }, state.data));
+      if(!createRes.success){
+        throw new Error(createRes.error === "VALIDATION_FAILED" ? "Server rejected the data — please review your entries." : (createRes.message || createRes.error || "Could not create record."));
+      }
+      const { teacherId, uid, editToken } = createRes;
+
+      setOverlay(true, "Uploading photograph…");
+      const photoUrl = await uploadToCloudinary(state.photoBlob, teacherId);
+
+      setOverlay(true, "Finalizing record…");
+      const updateRes = await callGAS({ action:"update", uid, editToken, photoUrl });
+      if(!updateRes.success) throw new Error("Photo linked, but finalizing failed. Contact the office with Teacher ID " + teacherId);
+
+      localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify({ uid, editToken, teacherId }));
+
+      setOverlay(true, "Loading your registry card…");
+      const record = Object.assign({}, state.data, { teacherId, uid, photoUrl });
+      renderIdCard(record, state.photoDataUrl);
+      setOverlay(false);
+    } catch(err){
+      setOverlay(false);
+      document.getElementById("btnNext").disabled = false;
+      showToast(err.message || "Something went wrong. Please try again.", true);
+    }
+  }
+
+  /* ================= ID card render ================= */
+  function renderIdCard(rec, localPhotoUrl){
+    document.getElementById("formView").style.display = "none";
+    document.getElementById("formCredit").style.display = "none";
+    const idView = document.getElementById("idView");
+    idView.style.display = "block";
+
+    document.getElementById("idPhoto").src = rec.photoUrl || localPhotoUrl || "";
+    document.getElementById("idNameEn").textContent = rec.nameEn;
+    document.getElementById("idNameBn").textContent = rec.nameBn;
+    document.getElementById("idDesignation").textContent = rec.designation;
+    document.getElementById("idTeacherId").textContent = rec.teacherId;
+    document.getElementById("idUid").textContent = rec.uid;
+    document.getElementById("idMobile").textContent = rec.mobile;
+    document.getElementById("idEmergency").textContent = rec.emergencyContact;
+    document.getElementById("idNid").textContent = rec.nid;
+    document.getElementById("idDob").textContent = rec.dob;
+    document.getElementById("idBlood").textContent = rec.bloodGroup;
+    document.getElementById("idAddress").textContent = `${rec.house}, ${rec.village}, Rangunia, 4360, Rangunia, Chittagong`;
+    document.getElementById("sealId").textContent = rec.teacherId;
+  }
+
+  /* ================= Returning-user check ================= */
+  async function checkExisting(){
+    const raw = localStorage.getItem(CONFIG.STORAGE_KEY);
+    if(!raw) return;
+    let saved;
+    try { saved = JSON.parse(raw); } catch(e){ return; }
+    if(!saved || !saved.uid) return;
+
+    document.getElementById("formView").style.display = "none";
+    document.getElementById("formCredit").style.display = "none";
+    setOverlay(true, "Loading your registration…");
+    try {
+      const res = await callGAS({ action:"get", uid: saved.uid, editToken: saved.editToken });
+      setOverlay(false);
+      if(res.success){
+        renderIdCard(res.teacher, res.teacher.photoUrl);
+      } else {
+        // fallback: show minimal notice if server unreachable / record not found
+        showToast(res.error === "NOT_FOUND" ? "Your saved record was not found on the server." : "Could not load your saved record.", true);
+        document.getElementById("formView").style.display = "block";
+        document.getElementById("formCredit").style.display = "block";
+      }
+    } catch(err){
+      setOverlay(false);
+      document.getElementById("formView").style.display = "block";
+      document.getElementById("formCredit").style.display = "block";
+    }
+  }
+
+  checkExisting();
+})();
+</script>
+</body>
+</html>

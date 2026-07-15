@@ -546,15 +546,15 @@
       return true;
     },
     dob: v => {
-      if(!v) return "Date of birth is required.";
-      const d = new Date(v);
-      const today = new Date();
-      if(isNaN(d.getTime()) || d > today) return "Enter a valid past date.";
-      const age = (today - d) / (365.25*24*3600*1000);
-      if(age < 18) return "Must be at least 18 years old.";
-      if(age > 70) return "Please verify — age exceeds 70.";
-      return true;
-    },
+      if(!v) return "Date of birth is required.";
+      const d = new Date(v);
+      const today = new Date();
+      if(isNaN(d.getTime()) || d > today) return "Enter a valid past date.";
+      const age = (today - d) / (365.25*24*3600*1000);
+      if(age < 15) return "Must be at least 15 years old.";
+      if(age > 70) return "Please verify — age exceeds 70.";
+      return true;
+    },
     // NEW VALIDATION RULE for joiningDate
     joiningDate: v => {
       if(!v) return "Joining date is required.";

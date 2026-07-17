@@ -299,43 +299,6 @@
     max-width:960px; margin:0 auto 16px; background:var(--error-bg); color:var(--error);
     border:1px solid rgba(165,41,29,.25); border-radius:10px; padding:10px 16px; font-size:12.5px; display:none;
   }
-
-  /* ---------- Deadline-closed view ---------- */
-  .closed-wrap{ opacity:0; animation:fadeUp .6s ease forwards; }
-  .closed-card{
-    background:var(--panel); border-radius:20px; border:1px solid var(--rule);
-    box-shadow:var(--shadow); padding:56px 44px; text-align:center; position:relative; overflow:hidden;
-  }
-  .closed-card::before{
-    content:""; position:absolute; top:0; left:0; right:0; height:6px;
-    background:linear-gradient(90deg, var(--emerald), var(--gold), var(--emerald));
-  }
-  .closed-seal{
-    width:96px; height:96px; margin:0 auto 22px; border-radius:50%;
-    border:3px double var(--error); display:flex; align-items:center; justify-content:center;
-    background:radial-gradient(circle at 30% 30%, rgba(165,41,29,0.10), transparent 60%);
-    animation:sealIn .7s .1s cubic-bezier(.2,.9,.3,1.3) both;
-    font-size:38px;
-  }
-  .closed-title-bn{
-    font-family:'Noto Serif Bengali',serif; font-weight:700; font-size:clamp(22px,4vw,30px);
-    color:var(--emerald-deep); margin:0 0 6px;
-  }
-  .closed-title-en{
-    font-family:'Amiri',serif; font-size:16px; color:var(--ink-soft); margin:0 0 26px; letter-spacing:.3px;
-  }
-  .closed-deadline{
-    display:inline-flex; flex-direction:column; gap:2px;
-    background:var(--emerald-glass); border:1px dashed rgba(14,59,46,0.25);
-    border-radius:12px; padding:14px 28px; margin-bottom:26px;
-  }
-  .closed-deadline .lbl{ font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--ink-soft); }
-  .closed-deadline .val{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; color:var(--emerald-deep); margin-top:3px; }
-  .closed-msg{
-    font-family:'Noto Serif Bengali',serif; font-size:15px; color:var(--ink-soft); line-height:1.9;
-    max-width:480px; margin:0 auto;
-  }
-  .closed-msg .en{ font-family:'Inter',sans-serif; font-size:13px; display:block; margin-top:10px; opacity:.85; }
 </style>
 </head>
 <body>
@@ -346,25 +309,6 @@
   <p class="subtitle">Teacher Registration Register &nbsp;·&nbsp; <span class="bn">শিক্ষক তথ্য নিবন্ধন</span></p>
 
   <div id="configWarning" class="config-warning">⚠ GAS_URL is not configured. Set CONFIG.GAS_URL in the script before going live.</div>
-
-  <!-- ===================== DEADLINE CLOSED VIEW ===================== -->
-  <div id="closedView" class="closed-wrap" style="display:none;">
-    <div class="closed-card">
-      <div class="closed-seal">⏳</div>
-      <h2 class="closed-title-bn">আবেদনের সময় শেষ হয়ে গেছে</h2>
-      <p class="closed-title-en">Application Period Has Ended</p>
-      <div class="closed-deadline">
-        <span class="lbl">Deadline was</span>
-        <span class="val" id="deadlineText"></span>
-      </div>
-      <p class="closed-msg">
-        দুঃখিত, শিক্ষক নিবন্ধনের জন্য নির্ধারিত সময়সীমা শেষ হয়ে গেছে। নতুন কোনো আবেদন গ্রহণ করা হচ্ছে না।
-        বিস্তারিত জানতে মাদরাসা অফিসে যোগাযোগ করুন।
-        <span class="en">Sorry, the registration window has closed and no further applications are being accepted. Please contact the madrasa office for details.</span>
-      </p>
-    </div>
-    <p class="credit">ডিজাইন ও ডেভেলপমেন্ট: রায়সুল ইসলাম সাঈদ</p>
-  </div>
 
   <!-- ===================== FORM VIEW ===================== -->
   <div id="formView" class="ledger">
@@ -566,29 +510,8 @@
     CLOUD_NAME: "djjnoclzp",
     UPLOAD_PRESET: "student_db",
     GAS_URL: "https://script.google.com/macros/s/AKfycbxO1addlBNx1Cv9MUMbYEP7UBIx4tDWPS7ABBdjcmAlQsJ0YxnEvKGnuzXAwSvtRPB7/exec",
-    STORAGE_KEY: "ardm_teacher_registration_v1",
-    // Application deadline — Asia/Dhaka time (UTC+6), fixed offset so it works the same
-    // regardless of the visitor's device timezone.
-    DEADLINE_ISO: "2026-07-16T18:00:00+06:00",
-    DEADLINE_DISPLAY: "16 July 2026, 6:00 PM (Dhaka)"
+    STORAGE_KEY: "ardm_teacher_registration_v1"
   };
-
-  if(!/^https:\/\/script\.google\.com\//.test(CONFIG.GAS_URL)){
-    document.getElementById("configWarning").style.display = "block";
-  }
-
-  /* ================= Deadline gate ================= */
-  function isDeadlinePassed(){
-    return Date.now() > new Date(CONFIG.DEADLINE_ISO).getTime();
-  }
-
-  if(isDeadlinePassed()){
-    document.getElementById("formView").style.display = "none";
-    document.getElementById("formCredit").style.display = "none";
-    document.getElementById("deadlineText").textContent = CONFIG.DEADLINE_DISPLAY;
-    document.getElementById("closedView").style.display = "block";
-    return; // stop all further form logic/init
-  }
 
   const DESIGNATIONS = [
   "Superintendent",
@@ -607,6 +530,9 @@
   "Ayah",
   "Other"
 ];
+  if(!/^https:\/\/script\.google\.com\//.test(CONFIG.GAS_URL)){
+    document.getElementById("configWarning").style.display = "block";
+  }
 
   /* ================= Validation rules ================= */
   const RULES = {
@@ -621,15 +547,15 @@
       return true;
     },
     dob: v => {
-      if(!v) return "Date of birth is required.";
-      const d = new Date(v);
-      const today = new Date();
-      if(isNaN(d.getTime()) || d > today) return "Enter a valid past date.";
-      const age = (today - d) / (365.25*24*3600*1000);
-      if(age < 15) return "Must be at least 15 years old.";
-      if(age > 70) return "Please verify — age exceeds 70.";
-      return true;
-    },
+      if(!v) return "Date of birth is required.";
+      const d = new Date(v);
+      const today = new Date();
+      if(isNaN(d.getTime()) || d > today) return "Enter a valid past date.";
+      const age = (today - d) / (365.25*24*3600*1000);
+      if(age < 15) return "Must be at least 15 years old.";
+      if(age > 70) return "Please verify — age exceeds 70.";
+      return true;
+    },
     // NEW VALIDATION RULE for joiningDate
     joiningDate: v => {
       if(!v) return "Joining date is required.";
@@ -821,10 +747,6 @@
 
   /* ================= Nav ================= */
   document.getElementById("btnNext").addEventListener("click", async ()=>{
-    if(isDeadlinePassed()){
-      showToast("Application time is over.", true);
-      return;
-    }
     if(!validateStep(state.step)) { showToast("Please fix the highlighted fields.", true); return; }
     if(state.step < steps.length-1){
       showStep(state.step+1);
@@ -881,10 +803,6 @@
   }
 
   async function submitRegistration(){
-    if(isDeadlinePassed()){
-      showToast("Application time is over.", true);
-      return;
-    }
     setOverlay(true, "Creating registration record…");
     document.getElementById("btnNext").disabled = true;
     try {

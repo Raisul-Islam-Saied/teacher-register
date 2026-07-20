@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,10 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Noto+Serif+Bengali:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<!-- Cropper.js for Advanced Image Cropping -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-
 <style>
   :root{
     --ink:#1B2420;
@@ -85,6 +80,10 @@
     0%{opacity:0; transform:scale(.4) rotate(-25deg);}
     60%{opacity:1; transform:scale(1.08) rotate(4deg);}
     100%{opacity:1; transform:scale(1) rotate(0deg);}
+  }
+  @keyframes shimmer{
+    0%{ background-position:-200% 0; }
+    100%{ background-position:200% 0; }
   }
 
   /* ---------- Card / ledger surface ---------- */
@@ -179,7 +178,7 @@
   @media (max-width:560px){ .fixed-addr{ grid-template-columns:1fr 1fr; } }
   .fixed-addr div b{ display:block; font-size:10.5px; text-transform:uppercase; color:var(--ink-soft); letter-spacing:.4px; margin-bottom:2px; }
 
-  /* ---------- Photo step & Cropper ---------- */
+  /* ---------- Photo step ---------- */
   .photo-zone{ display:flex; gap:28px; align-items:center; flex-wrap:wrap; }
   .photo-frame{
     width:160px; height:160px; border-radius:14px; border:2px dashed var(--rule);
@@ -198,31 +197,6 @@
   .btn-upload:hover{ transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(14,59,46,0.5); }
   input[type=file]{ display:none; }
   .photo-note{ font-size:12px; color:var(--ink-soft); margin-top:10px; line-height:1.6; }
-
-  /* Advanced Crop Modal */
-  .crop-modal {
-    position: fixed; inset: 0; background: rgba(8,43,33,0.85); backdrop-filter: blur(4px);
-    display: none; align-items: center; justify-content: center; z-index: 100;
-  }
-  .crop-modal.show { display: flex; }
-  .crop-modal-content {
-    background: var(--panel); border-radius: var(--radius); padding: 24px;
-    width: 90%; max-width: 500px; box-shadow: var(--shadow);
-    display: flex; flex-direction: column; gap: 16px; position: relative;
-  }
-  .crop-modal-content h3 { margin: 0; color: var(--emerald-deep); font-family: 'Amiri', serif; font-size: 20px; text-align: center; }
-  .cropper-area { width: 100%; height: 60vh; max-height: 400px; background: #e0e0e0; position: relative; border-radius: 8px; overflow: hidden; }
-  .cropper-area img { display: block; max-width: 100%; }
-  
-  /* The Human Guide Overlay */
-  .human-guide {
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none; z-index: 10; display: flex; align-items: center; justify-content: center;
-  }
-  .human-guide svg { width: 80%; height: 80%; opacity: 0.6; stroke-dasharray: 6; animation: dash 10s linear infinite; }
-  @keyframes dash { to { stroke-dashoffset: 1000; } }
-
-  .crop-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; }
 
   /* ---------- Review ---------- */
   .review-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 28px; font-size:14px; }
@@ -247,8 +221,8 @@
   .btn-primary:disabled{ opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
   .btn-ghost{ background:transparent; color:var(--ink-soft); }
   .btn-ghost:hover{ color:var(--ink); }
-  
-  .btn-danger { background: var(--error); color: #fff; }
+  .btn-gold{ background:linear-gradient(120deg, var(--gold), #B7872C); color:#2A2005; }
+  .btn-gold:hover{ transform:translateY(-1px); box-shadow:0 10px 24px -10px rgba(198,156,61,0.6); }
 
   /* ---------- Loading shimmer state ---------- */
   .submitting-overlay{
@@ -398,6 +372,7 @@
           </div>
 
           <div class="grid2">
+            <!-- NEW FIELD: joiningDate -->
             <div class="field" data-field="joiningDate">
               <label>Date of Joining <span class="req">*</span></label>
               <input type="date" name="joiningDate">
@@ -449,14 +424,14 @@
         <!-- STEP 3: Photo -->
        <form class="fieldset" data-step="2" id="step2" novalidate>
           <h2 class="fs-title">Photograph</h2>
-          <p class="fs-sub">Upload a clear, front-facing photo. Use the advanced cropper to frame your face within the guide. <b>Background MUST be white.</b></p>
+          <p class="fs-sub">Upload a clear, front-facing photo with a <b>white background</b>. The image MUST be <b>perfectly square</b>.</p>
 
           <div class="photo-zone">
             <div class="photo-frame" id="photoFrame"><span class="ph-icon">📷</span></div>
             <div class="photo-actions">
-              <label class="btn-upload" for="photoInput">Choose & Crop Photo</label>
+              <label class="btn-upload" for="photoInput">Choose Photograph</label>
               <input type="file" id="photoInput" accept="image/png, image/jpeg, image/webp">
-              <div class="photo-note">JPG, PNG or WEBP · max 10MB · You can zoom and align your photo in the next step. System will auto-verify the white background.</div>
+              <div class="photo-note">JPG, PNG or WEBP · max 10MB · Must be perfectly square (e.g. 600x600). It will be resized to 500×500 automatically.</div>
               <div class="field" data-field="photo" style="margin-top:10px;"><div class="err-msg"></div></div>
             </div>
           </div>
@@ -477,32 +452,6 @@
           <button type="button" class="btn btn-ghost" id="btnBack">← Back</button>
           <button type="button" class="btn btn-primary" id="btnNext">Next →</button>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== CROP MODAL ===================== -->
-  <div class="crop-modal" id="cropModal">
-    <div class="crop-modal-content">
-      <h3>Align Your Photo</h3>
-      <p style="font-size:13px; text-align:center; color:var(--ink-soft); margin:0 0 10px;">Pinch to zoom, drag to move. Fit your face and shoulders inside the outline. <b>Background must be white.</b></p>
-      
-      <div class="cropper-area">
-        <img id="cropperImage" src="" alt="To crop">
-        <!-- The human silhouette guide -->
-        <div class="human-guide" id="humanGuide">
-          <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-            <!-- Head -->
-            <ellipse cx="50" cy="35" rx="16" ry="20" fill="transparent" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>
-            <!-- Shoulders -->
-            <path d="M 20 90 C 20 65, 80 65, 80 90" fill="transparent" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="crop-actions">
-        <button type="button" class="btn btn-ghost" id="btnCancelCrop">Cancel</button>
-        <button type="button" class="btn btn-primary" id="btnApplyCrop">✓ Crop & Verify</button>
       </div>
     </div>
   </div>
@@ -530,6 +479,7 @@
         <div class="id-item"><div class="k">Emergency Contact</div><div class="v" id="idEmergency"></div></div>
         <div class="id-item"><div class="k">NID</div><div class="v" id="idNid"></div></div>
         <div class="id-item"><div class="k">Date of Birth</div><div class="v" id="idDob"></div></div>
+        <!-- NEW FIELD: Joining Date in ID view -->
         <div class="id-item"><div class="k">Joining Date</div><div class="v" id="idJoiningDate"></div></div>
         <div class="id-item"><div class="k">Blood Group</div><div class="v" id="idBlood"></div></div>
         <div class="id-item"><div class="k">Address</div><div class="v" id="idAddress"></div></div>
@@ -545,7 +495,7 @@
 <div class="submitting-overlay" id="overlay">
   <div class="submit-card">
     <div class="spinner"></div>
-    <div class="submit-status" id="submitStatus">Processing…</div>
+    <div class="submit-status" id="submitStatus">Saving your record…</div>
   </div>
 </div>
 
@@ -597,15 +547,16 @@
       return true;
     },
     dob: v => {
-      if(!v) return "Date of birth is required.";
-      const d = new Date(v);
-      const today = new Date();
-      if(isNaN(d.getTime()) || d > today) return "Enter a valid past date.";
-      const age = (today - d) / (365.25*24*3600*1000);
-      if(age < 15) return "Must be at least 15 years old.";
-      if(age > 70) return "Please verify — age exceeds 70.";
-      return true;
-    },
+      if(!v) return "Date of birth is required.";
+      const d = new Date(v);
+      const today = new Date();
+      if(isNaN(d.getTime()) || d > today) return "Enter a valid past date.";
+      const age = (today - d) / (365.25*24*3600*1000);
+      if(age < 15) return "Must be at least 15 years old.";
+      if(age > 70) return "Please verify — age exceeds 70.";
+      return true;
+    },
+    // NEW VALIDATION RULE for joiningDate
     joiningDate: v => {
       if(!v) return "Joining date is required.";
       const d = new Date(v);
@@ -623,22 +574,11 @@
   };
 
   /* ================= State ================= */
-  // TEST DATA INJECTED FOR RAISUL ISLAM SAIED
   const state = {
-    step: 2, // JUMPING DIRECTLY TO PHOTO STEP (STEP 3)
-    data: { 
-      nameEn: "Md. Raisul Islam Saied", 
-      nameBn: "মোঃ রায়সুল ইসলাম সাঈদ", 
-      designation: "Assistant Teacher", 
-      bloodGroup: "O+", 
-      nid: "1234567890", 
-      dob: "2003-07-30", 
-      joiningDate: "2023-01-01",
-      mobile: "01711000000", 
-      emergencyContact: "01811000000", 
-      house: "House 12, Road 3", 
-      village: "Dakshin Rangunia" 
-    },
+    step: 0,
+    // Added joiningDate to default state data
+    data: { nameEn:"", nameBn:"", designation:"", bloodGroup:"", nid:"", dob:"", joiningDate:"",
+             mobile:"", emergencyContact:"", house:"", village:"" },
     photoBlob: null,
     photoDataUrl: null
   };
@@ -666,12 +606,6 @@
     desigSelect.appendChild(opt);
   });
 
-  // Auto fill inputs for testing
-  Object.keys(state.data).forEach(key => {
-    const el = document.querySelector(`[name="${key}"]`);
-    if(el) el.value = state.data[key];
-  });
-
   function renderStepper(){
     document.querySelectorAll(".step").forEach((el,i)=>{
       el.classList.toggle("active", i===state.step);
@@ -689,9 +623,6 @@
     if(i===3) buildReview();
     window.scrollTo({top: document.getElementById("formView").offsetTop - 20, behavior:"smooth"});
   }
-
-  // Show Step 2 directly for testing
-  showStep(2);
 
   /* ================= Field validation UI ================= */
   function validateField(name, value){
@@ -724,6 +655,7 @@
   function validateStep(i){
     let valid = true;
     if(i===0){
+      // Added joiningDate to the fields array
       ["nameEn","nameBn","designation","bloodGroup","nid","dob","joiningDate","mobile","emergencyContact"].forEach(n=>{
         const el = document.querySelector(`#step0 [name="${n}"]`);
         if(!validateField(n, el.value)) valid = false;
@@ -737,7 +669,7 @@
       const fieldEl = document.querySelector('.field[data-field="photo"]');
       if(!state.photoBlob){
         fieldEl.classList.add("invalid");
-        fieldEl.querySelector(".err-msg").textContent = "Please upload and crop a photograph.";
+        fieldEl.querySelector(".err-msg").textContent = "Please upload a photograph.";
         valid = false;
       } else {
         fieldEl.classList.remove("invalid");
@@ -756,7 +688,7 @@
     const rows = [
       ["Name (En)", d.nameEn], ["নাম", d.nameBn], ["Designation", d.designation],
       ["Blood Group", d.bloodGroup], ["NID", d.nid], ["Date of Birth", d.dob],
-      ["Joining Date", d.joiningDate],
+      ["Joining Date", d.joiningDate], // Added Joining Date in Review
       ["Mobile", d.mobile], ["Emergency", d.emergencyContact],
       ["House", d.house], ["Village", d.village],
       ["Post Office", "Sarafbhata"], ["Post Code", "4360"],
@@ -771,12 +703,9 @@
     return String(str).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   }
 
- /* ================= Advanced Photo Cropper ================= */
+ /* ================= Photo crop-to-square-500 ================= */
   const photoInput = document.getElementById("photoInput");
   const photoFrame = document.getElementById("photoFrame");
-  const cropModal = document.getElementById("cropModal");
-  const cropperImage = document.getElementById("cropperImage");
-  let cropperInstance = null;
 
   photoInput.addEventListener("change", (e)=>{
     const file = e.target.files[0];
@@ -789,103 +718,31 @@
       showToast("Image must be under 10MB.", true);
       return;
     }
-    
-    // Load into Modal
+    const img = new Image();
     const reader = new FileReader();
     reader.onload = ev=>{
-      cropperImage.src = ev.target.result;
-      cropModal.classList.add("show");
-      
-      // Initialize Cropper JS
-      if(cropperInstance) cropperInstance.destroy();
-      cropperInstance = new Cropper(cropperImage, {
-        aspectRatio: 1, // Must be square
-        viewMode: 1,    // Restrict within container
-        dragMode: 'move', // Allow moving the image instead of creating new crop boxes
-        autoCropArea: 0.8,
-        guides: false,
-        center: false,
-        highlight: false,
-        cropBoxMovable: false,
-        cropBoxResizable: false,
-        toggleDragModeOnDblclick: false,
-        ready: function() {
-            // Append the human guide inside the crop box so it overlays perfectly on the cropped area
-            const cropBox = document.querySelector('.cropper-crop-box');
-            const guide = document.getElementById('humanGuide');
-            if(cropBox && guide) {
-               cropBox.appendChild(guide);
-            }
+      img.onload = ()=>{
+        if(img.width !== img.height) {
+          showToast("Image must be perfectly square (width and height must match).", true);
+          photoInput.value = ""; // clear input
+          return;
         }
-      });
-      // reset input value so same file can be selected again if needed
-      photoInput.value = ""; 
-    };
-    reader.readAsDataURL(file);
-  });
-
-  document.getElementById("btnCancelCrop").addEventListener("click", () => {
-      cropModal.classList.remove("show");
-      if(cropperInstance) cropperInstance.destroy();
-  });
-
-  // White background detector function
-  function isBackgroundWhiteish(canvas) {
-      const ctx = canvas.getContext('2d');
-      const w = canvas.width;
-      const h = canvas.height;
-      // Sample a few points around the edges (top, left, right borders)
-      const samples = [
-          {x: 10, y: 10}, {x: w/2, y: 10}, {x: w-10, y: 10},
-          {x: 10, y: h/2}, {x: w-10, y: h/2},
-          {x: 10, y: h-10}, {x: w-10, y: h-10}
-      ];
-      
-      let darkPoints = 0;
-      for(let p of samples) {
-          const pixel = ctx.getImageData(p.x, p.y, 1, 1).data;
-          // RGB values - passport white backgrounds might be slightly grayish or off-white depending on lighting
-          // We consider it "not white" if any color channel drops below 180 (quite strict)
-          if(pixel[0] < 180 || pixel[1] < 180 || pixel[2] < 180) {
-              darkPoints++;
-          }
-      }
-      
-      // If more than 3 sample points are dark/not-white, reject it
-      return darkPoints <= 3;
-  }
-
-  document.getElementById("btnApplyCrop").addEventListener("click", () => {
-      if(!cropperInstance) return;
-      
-      // Get cropped canvas (fixed 500x500 for standard processing)
-      const canvas = cropperInstance.getCroppedCanvas({
-          width: 500,
-          height: 500,
-          imageSmoothingEnabled: true,
-          imageSmoothingQuality: 'high',
-      });
-
-      // 1. Verify White Background
-      if(!isBackgroundWhiteish(canvas)) {
-          showToast("⚠ Error: Photo background must be clear WHITE. Please take a photo in front of a white wall.", true);
-          return; // Stop applying
-      }
-
-      // 2. Accept Image
-      canvas.toBlob(blob => {
+        const size = img.width; // perfectly square
+        const canvas = document.createElement("canvas");
+        canvas.width = 500; canvas.height = 500;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, size, size, 0, 0, 500, 500);
+        canvas.toBlob(blob=>{
           state.photoBlob = blob;
           state.photoDataUrl = canvas.toDataURL("image/jpeg", 0.92);
-          
           photoFrame.innerHTML = `<img src="${state.photoDataUrl}" alt="preview">`;
           photoFrame.classList.add("has-img");
           document.querySelector('.field[data-field="photo"]').classList.remove("invalid");
-          
-          // Cleanup & Close
-          cropModal.classList.remove("show");
-          cropperInstance.destroy();
-          showToast("Photo processed & background verified successfully!");
-      }, "image/jpeg", 0.92);
+        }, "image/jpeg", 0.92);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
   });
 
   /* ================= Nav ================= */
@@ -923,7 +780,7 @@
   async function callGAS(payload){
     const res = await fetch(CONFIG.GAS_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids CORS preflight on Apps Script
       body: JSON.stringify(payload)
     });
     if(!res.ok) throw new Error("Network error contacting server.");
@@ -993,6 +850,7 @@
     document.getElementById("idNid").textContent = rec.nid;
     document.getElementById("idDob").textContent = rec.dob;
     
+    // Check if element exists before modifying it (just in case)
     const idJoiningDate = document.getElementById("idJoiningDate");
     if(idJoiningDate) {
         idJoiningDate.textContent = rec.joiningDate;
@@ -1011,10 +869,6 @@
     try { saved = JSON.parse(raw); } catch(e){ return; }
     if(!saved || !saved.uid) return;
 
-    // FOR TESTING PURPOSE: We ignore returning user check temporarily
-    // to allow you to test the photo cropper. Remove the `return;` below for production.
-    return; 
-    
     document.getElementById("formView").style.display = "none";
     document.getElementById("formCredit").style.display = "none";
     setOverlay(true, "Loading your registration…");
@@ -1024,6 +878,7 @@
       if(res.success){
         renderIdCard(res.teacher, res.teacher.photoUrl);
       } else {
+        // fallback: show minimal notice if server unreachable / record not found
         showToast(res.error === "NOT_FOUND" ? "Your saved record was not found on the server." : "Could not load your saved record.", true);
         document.getElementById("formView").style.display = "block";
         document.getElementById("formCredit").style.display = "block";
@@ -1039,6 +894,4 @@
 })();
 </script>
 </body>
-</html>
-
-
+              </html>

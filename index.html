@@ -181,9 +181,9 @@
   /* ---------- Photo step ---------- */
   .photo-zone{ display:flex; gap:28px; align-items:center; flex-wrap:wrap; }
   .photo-frame{
-    width:160px; height:160px; border-radius:14px; border:2px dashed var(--rule);
+    width:160px; height:160px; border-radius:50%; border:2px dashed var(--rule);
     display:flex; align-items:center; justify-content:center; overflow:hidden;
-    background:var(--paper-deep); flex:0 0 auto; position:relative; transition:border-color .3s ease;
+    background:var(--paper-deep); flex:0 0 auto; position:relative; transition:border-color .3s ease, border-radius .3s ease;
   }
   .photo-frame.has-img{ border-style:solid; border-color:var(--gold); }
   .photo-frame img{ width:100%; height:100%; object-fit:cover; }
@@ -197,6 +197,42 @@
   .btn-upload:hover{ transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(14,59,46,0.5); }
   input[type=file]{ display:none; }
   .photo-note{ font-size:12px; color:var(--ink-soft); margin-top:10px; line-height:1.6; }
+  .btn-recrop{
+    display:inline-flex; align-items:center; gap:6px; cursor:pointer; margin-top:10px;
+    padding:8px 16px; border-radius:999px; background:transparent; color:var(--emerald);
+    font-size:12.5px; font-weight:600; border:1.5px solid var(--emerald); transition:all .2s ease;
+  }
+  .btn-recrop:hover{ background:var(--emerald); color:#fff; }
+
+  /* ---------- Crop modal (FB/WhatsApp-style profile photo cropper) ---------- */
+  .crop-modal-overlay{
+    position:fixed; inset:0; background:rgba(8,43,33,0.72); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; z-index:90; padding:20px;
+  }
+  .crop-modal-overlay.show{ display:flex; animation:fadeUp .3s ease; }
+  .crop-modal{
+    background:var(--panel); border-radius:20px; padding:28px; max-width:420px; width:100%;
+    box-shadow:var(--shadow); text-align:center; border:1px solid var(--rule);
+  }
+  .crop-modal h3{ font-family:'Amiri',serif; color:var(--emerald-deep); margin:0 0 4px; font-size:19px; }
+  .crop-modal p.crop-sub{ font-size:12.5px; color:var(--ink-soft); margin:0 0 20px; line-height:1.6; }
+  .crop-stage{
+    position:relative; width:280px; height:280px; margin:0 auto 20px; border-radius:14px;
+    overflow:hidden; background:#161b18; touch-action:none; cursor:grab; user-select:none;
+  }
+  .crop-stage:active{ cursor:grabbing; }
+  .crop-stage canvas{ position:absolute; top:0; left:0; }
+  .crop-guide{
+    position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(circle at 50% 50%, transparent 0, transparent calc(50% - 1px),
+      rgba(255,255,255,.95) calc(50% - 1px) calc(50% + 1px), rgba(8,43,33,.6) calc(50% + 1px));
+  }
+  .zoom-row{ display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+  .zoom-row .zoom-icon{ font-size:14px; color:var(--ink-soft); flex:0 0 auto; }
+  .zoom-row input[type=range]{ flex:1; accent-color:var(--gold); }
+  .crop-actions{ display:flex; gap:12px; justify-content:center; }
+  .crop-hint{ font-size:11.5px; color:var(--ink-soft); opacity:.8; margin-top:14px; }
 
   /* ---------- Review ---------- */
   .review-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 28px; font-size:14px; }
@@ -299,6 +335,17 @@
     max-width:960px; margin:0 auto 16px; background:var(--error-bg); color:var(--error);
     border:1px solid rgba(165,41,29,.25); border-radius:10px; padding:10px 16px; font-size:12.5px; display:none;
   }
+
+  /* ---------- Dev/testing helper ---------- */
+  .dev-bar{
+    max-width:960px; margin:0 auto 16px; display:flex; justify-content:center;
+  }
+  .btn-devtest{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.3px;
+    background:var(--paper-deep); color:var(--emerald-deep); border:1.5px dashed var(--gold);
+    padding:9px 16px; border-radius:999px; cursor:pointer;
+  }
+  .btn-devtest:hover{ background:var(--gold-soft); }
 </style>
 </head>
 <body>
@@ -309,6 +356,11 @@
   <p class="subtitle">Teacher Registration Register &nbsp;·&nbsp; <span class="bn">শিক্ষক তথ্য নিবন্ধন</span></p>
 
   <div id="configWarning" class="config-warning">⚠ GAS_URL is not configured. Set CONFIG.GAS_URL in the script before going live.</div>
+
+  <!-- TESTING HELPER: remove this bar before going live -->
+  <div class="dev-bar">
+    <button type="button" class="btn-devtest" id="btnDevFill">🧪 টেস্ট ডাটা পূরণ করে ছবির ধাপে যাও</button>
+  </div>
 
   <!-- ===================== FORM VIEW ===================== -->
   <div id="formView" class="ledger">
@@ -424,14 +476,15 @@
         <!-- STEP 3: Photo -->
        <form class="fieldset" data-step="2" id="step2" novalidate>
           <h2 class="fs-title">Photograph</h2>
-          <p class="fs-sub">Upload a clear, front-facing photo with a <b>white background</b>. The image MUST be <b>perfectly square</b>.</p>
+          <p class="fs-sub">Upload a clear, front-facing photo with a <b>white background</b>. You'll be able to crop and zoom to fit the guide, just like uploading a profile photo on Facebook or WhatsApp.</p>
 
           <div class="photo-zone">
             <div class="photo-frame" id="photoFrame"><span class="ph-icon">📷</span></div>
             <div class="photo-actions">
               <label class="btn-upload" for="photoInput">Choose Photograph</label>
               <input type="file" id="photoInput" accept="image/png, image/jpeg, image/webp">
-              <div class="photo-note">JPG, PNG or WEBP · max 10MB · Must be perfectly square (e.g. 600x600). It will be resized to 500×500 automatically.</div>
+              <div class="photo-note">JPG, PNG or WEBP · max 10MB · Any size or shape is fine — you'll crop it to a perfect square (500×500) next. Background must be white.</div>
+              <div><button type="button" class="btn-recrop" id="btnRecrop" style="display:none;">🔄 Re-crop photo</button></div>
               <div class="field" data-field="photo" style="margin-top:10px;"><div class="err-msg"></div></div>
             </div>
           </div>
@@ -492,6 +545,27 @@
   <p class="credit" id="formCredit">ডিজাইন ও ডেভেলপমেন্ট: রায়সুল ইসলাম সাঈদ</p>
 </div>
 
+<!-- ===================== PHOTO CROPPER MODAL ===================== -->
+<div class="crop-modal-overlay" id="cropModal">
+  <div class="crop-modal">
+    <h3>Position your photo</h3>
+    <p class="crop-sub">Drag to move, use the slider (or scroll) to zoom. Fit your face and shoulders inside the circle, on a plain white background.</p>
+    <div class="crop-stage" id="cropStage">
+      <canvas id="cropCanvas"></canvas>
+      <div class="crop-guide"></div>
+    </div>
+    <div class="zoom-row">
+      <span class="zoom-icon">🔍</span>
+      <input type="range" id="zoomRange" min="1" max="4" step="0.01" value="1">
+    </div>
+    <div class="crop-actions">
+      <button type="button" class="btn btn-ghost" id="btnCropCancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="btnCropSave">Use Photo</button>
+    </div>
+    <p class="crop-hint">Tip: the background outside the circle must scan as white — retake the photo against a plain white wall or sheet if it's rejected.</p>
+  </div>
+</div>
+
 <div class="submitting-overlay" id="overlay">
   <div class="submit-card">
     <div class="spinner"></div>
@@ -547,15 +621,15 @@
       return true;
     },
     dob: v => {
-      if(!v) return "Date of birth is required.";
-      const d = new Date(v);
-      const today = new Date();
-      if(isNaN(d.getTime()) || d > today) return "Enter a valid past date.";
-      const age = (today - d) / (365.25*24*3600*1000);
-      if(age < 15) return "Must be at least 15 years old.";
-      if(age > 70) return "Please verify — age exceeds 70.";
-      return true;
-    },
+      if(!v) return "Date of birth is required.";
+      const d = new Date(v);
+      const today = new Date();
+      if(isNaN(d.getTime()) || d > today) return "Enter a valid past date.";
+      const age = (today - d) / (365.25*24*3600*1000);
+      if(age < 15) return "Must be at least 15 years old.";
+      if(age > 70) return "Please verify — age exceeds 70.";
+      return true;
+    },
     // NEW VALIDATION RULE for joiningDate
     joiningDate: v => {
       if(!v) return "Joining date is required.";
@@ -580,7 +654,8 @@
     data: { nameEn:"", nameBn:"", designation:"", bloodGroup:"", nid:"", dob:"", joiningDate:"",
              mobile:"", emergencyContact:"", house:"", village:"" },
     photoBlob: null,
-    photoDataUrl: null
+    photoDataUrl: null,
+    lastRawPhotoSrc: null // full original image (data URL) kept for re-cropping
   };
 
   const steps = [
@@ -703,9 +778,148 @@
     return String(str).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   }
 
- /* ================= Photo crop-to-square-500 ================= */
+  /* ================= Photo cropper (FB/WhatsApp style: pan + zoom + circular guide) ================= */
   const photoInput = document.getElementById("photoInput");
   const photoFrame = document.getElementById("photoFrame");
+  const btnRecrop = document.getElementById("btnRecrop");
+
+  const STAGE_SIZE = 280;   // on-screen crop stage, px
+  const OUTPUT_SIZE = 500;  // final saved photo, px (square)
+
+  const cropModal = document.getElementById("cropModal");
+  const cropStage = document.getElementById("cropStage");
+  const cropCanvas = document.getElementById("cropCanvas");
+  cropCanvas.width = STAGE_SIZE; cropCanvas.height = STAGE_SIZE;
+  const cropCtx = cropCanvas.getContext("2d");
+  const zoomRange = document.getElementById("zoomRange");
+
+  const cropState = { img:null, scale:1, minScale:1, maxScale:4, offX:0, offY:0, dragging:false, lastX:0, lastY:0 };
+
+  function openCropper(imgSrc){
+    state.lastRawPhotoSrc = imgSrc;
+    const img = new Image();
+    img.onload = ()=>{
+      cropState.img = img;
+      const scaleToFill = Math.max(STAGE_SIZE/img.width, STAGE_SIZE/img.height);
+      cropState.minScale = scaleToFill;
+      cropState.maxScale = scaleToFill * 4;
+      cropState.scale = scaleToFill;
+      cropState.offX = 0; cropState.offY = 0;
+      zoomRange.min = scaleToFill;
+      zoomRange.max = scaleToFill * 4;
+      zoomRange.step = (scaleToFill * 3) / 100;
+      zoomRange.value = scaleToFill;
+      drawCrop();
+      cropModal.classList.add("show");
+    };
+    img.onerror = ()=> showToast("Could not read that image. Please try another file.", true);
+    img.src = imgSrc;
+  }
+
+  function drawCrop(){
+    const {img, scale, offX, offY} = cropState;
+    cropCtx.clearRect(0,0,STAGE_SIZE,STAGE_SIZE);
+    cropCtx.save();
+    cropCtx.translate(STAGE_SIZE/2 + offX, STAGE_SIZE/2 + offY);
+    cropCtx.drawImage(img, -img.width*scale/2, -img.height*scale/2, img.width*scale, img.height*scale);
+    cropCtx.restore();
+  }
+
+  function clampPan(){
+    const {img, scale} = cropState;
+    const w = img.width*scale, h = img.height*scale;
+    const maxOffX = Math.max(0, (w - STAGE_SIZE)/2);
+    const maxOffY = Math.max(0, (h - STAGE_SIZE)/2);
+    cropState.offX = Math.min(maxOffX, Math.max(-maxOffX, cropState.offX));
+    cropState.offY = Math.min(maxOffY, Math.max(-maxOffY, cropState.offY));
+  }
+
+  cropStage.addEventListener("pointerdown", e=>{
+    cropState.dragging = true;
+    cropState.lastX = e.clientX; cropState.lastY = e.clientY;
+    cropStage.setPointerCapture(e.pointerId);
+  });
+  cropStage.addEventListener("pointermove", e=>{
+    if(!cropState.dragging) return;
+    const dx = e.clientX - cropState.lastX;
+    const dy = e.clientY - cropState.lastY;
+    cropState.lastX = e.clientX; cropState.lastY = e.clientY;
+    cropState.offX += dx; cropState.offY += dy;
+    clampPan();
+    drawCrop();
+  });
+  ["pointerup","pointercancel","pointerleave"].forEach(ev=>
+    cropStage.addEventListener(ev, ()=> cropState.dragging = false)
+  );
+  cropStage.addEventListener("wheel", e=>{
+    e.preventDefault();
+    const delta = -e.deltaY * 0.0015;
+    let newScale = cropState.scale + delta * cropState.scale;
+    newScale = Math.min(cropState.maxScale, Math.max(cropState.minScale, newScale));
+    cropState.scale = newScale;
+    zoomRange.value = newScale;
+    clampPan();
+    drawCrop();
+  }, {passive:false});
+
+  zoomRange.addEventListener("input", e=>{
+    cropState.scale = parseFloat(e.target.value);
+    clampPan();
+    drawCrop();
+  });
+
+  // Sample points across the final image (mostly outside the inscribed circle) to check for a white background
+  function isBackgroundWhite(ctx, size){
+    const margin = Math.round(size * 0.06);
+    const points = [
+      [margin, margin], [size-margin, margin], [margin, size-margin], [size-margin, size-margin],
+      [size/2, margin], [margin, size/2], [size-margin, size/2], [size/2, size-margin]
+    ];
+    let passed = 0;
+    points.forEach(([x,y])=>{
+      const d = ctx.getImageData(x, y, 1, 1).data;
+      const r = d[0], g = d[1], b = d[2];
+      const bright = (r+g+b)/3;
+      const spread = Math.max(r,g,b) - Math.min(r,g,b);
+      if(bright > 222 && spread < 22) passed++;
+    });
+    return passed / points.length >= 0.75;
+  }
+
+  document.getElementById("btnCropSave").addEventListener("click", ()=>{
+    const outCanvas = document.createElement("canvas");
+    outCanvas.width = OUTPUT_SIZE; outCanvas.height = OUTPUT_SIZE;
+    const outCtx = outCanvas.getContext("2d");
+    const {img, scale, offX, offY} = cropState;
+    const factor = OUTPUT_SIZE / STAGE_SIZE;
+    outCtx.fillStyle = "#ffffff";
+    outCtx.fillRect(0,0,OUTPUT_SIZE,OUTPUT_SIZE);
+    outCtx.save();
+    outCtx.translate(OUTPUT_SIZE/2 + offX*factor, OUTPUT_SIZE/2 + offY*factor);
+    outCtx.drawImage(img, -img.width*scale*factor/2, -img.height*scale*factor/2, img.width*scale*factor, img.height*scale*factor);
+    outCtx.restore();
+
+    if(!isBackgroundWhite(outCtx, OUTPUT_SIZE)){
+      showToast("ব্যাকগ্রাউন্ড সাদা মনে হচ্ছে না — দয়া করে সাদা ব্যাকগ্রাউন্ডে তোলা ছবি ব্যবহার করুন।", true);
+      return;
+    }
+
+    outCanvas.toBlob(blob=>{
+      state.photoBlob = blob;
+      state.photoDataUrl = outCanvas.toDataURL("image/jpeg", 0.92);
+      photoFrame.innerHTML = `<img src="${state.photoDataUrl}" alt="preview">`;
+      photoFrame.classList.add("has-img");
+      btnRecrop.style.display = "inline-flex";
+      document.querySelector('.field[data-field="photo"]').classList.remove("invalid");
+      closeCropper();
+    }, "image/jpeg", 0.92);
+  });
+
+  document.getElementById("btnCropCancel").addEventListener("click", closeCropper);
+  function closeCropper(){
+    cropModal.classList.remove("show");
+    photoInput.value = "";
+  }
 
   photoInput.addEventListener("change", (e)=>{
     const file = e.target.files[0];
@@ -718,31 +932,13 @@
       showToast("Image must be under 10MB.", true);
       return;
     }
-    const img = new Image();
     const reader = new FileReader();
-    reader.onload = ev=>{
-      img.onload = ()=>{
-        if(img.width !== img.height) {
-          showToast("Image must be perfectly square (width and height must match).", true);
-          photoInput.value = ""; // clear input
-          return;
-        }
-        const size = img.width; // perfectly square
-        const canvas = document.createElement("canvas");
-        canvas.width = 500; canvas.height = 500;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, size, size, 0, 0, 500, 500);
-        canvas.toBlob(blob=>{
-          state.photoBlob = blob;
-          state.photoDataUrl = canvas.toDataURL("image/jpeg", 0.92);
-          photoFrame.innerHTML = `<img src="${state.photoDataUrl}" alt="preview">`;
-          photoFrame.classList.add("has-img");
-          document.querySelector('.field[data-field="photo"]').classList.remove("invalid");
-        }, "image/jpeg", 0.92);
-      };
-      img.src = ev.target.result;
-    };
+    reader.onload = ev => openCropper(ev.target.result);
     reader.readAsDataURL(file);
+  });
+
+  btnRecrop.addEventListener("click", ()=>{
+    if(state.lastRawPhotoSrc) openCropper(state.lastRawPhotoSrc);
   });
 
   /* ================= Nav ================= */
@@ -890,8 +1086,26 @@
     }
   }
 
+  /* ================= TESTING HELPER: fill steps 1-2 & jump to photo step ================= */
+  /* Remove the .dev-bar element and this block before going live. */
+  document.getElementById("btnDevFill").addEventListener("click", ()=>{
+    const sample = {
+      nameEn:"Md. Rayhan Uddin", nameBn:"মোঃ রায়হান উদ্দিন", designation:"Assistant Teacher",
+      bloodGroup:"O+", nid:"1234567890123", dob:"1990-05-15", joiningDate:"2020-01-10",
+      mobile:"01712345678", emergencyContact:"01898765432",
+      house:"House 12, Road 3", village:"Dakshin Rangunia"
+    };
+    Object.keys(sample).forEach(k=>{
+      state.data[k] = sample[k];
+      const el = document.querySelector(`[name="${k}"]`);
+      if(el) el.value = sample[k];
+    });
+    showStep(2);
+    showToast("টেস্ট ডাটা পূরণ হয়েছে। এখন ছবি আপলোড করে ক্রপ করুন।", false);
+  });
+
   checkExisting();
 })();
 </script>
 </body>
-              </html>
+</html>
